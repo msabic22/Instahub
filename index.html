@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset = "utf-8">
+    <title>Fakehub</title>
+    <link rel="stylesheet" href="styles/font-awesome.min.css"/>
+    <link rel="stylesheet" href="styles/style.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+
+<!-- sadrži profilnu sliku, username, fullname i follow button koji se po potrebi miće -->
+    <template id="profile-box-template">
+      <div class="profile-container">
+        <img class="profile-picture" src="">
+        <p class="username-paragraph no-margin"></p>
+        <p class="fullName-paragraph"></p>
+        <button class="follow-button">Follow</button>
+      </div>
+    </template>
+
+<!-- kalup za izgled jedne objave -->
+    <template id="post">
+      <article class="post-container frame">
+        <div class="user-profile-container  ">
+          <p>
+            <img class="profile-picture"src="">
+            <div class="profile-info-container">
+              <p class="username-post"></p>
+              <p class="location-paragraph"></p>              
+            </div>
+          </p>
+        </div>
+        <img class="image-post" src="">
+        <div class="action-buttons-container ">
+          <div class="icons-container">
+            <i class="far fa-heart"></i>
+            <i class="far fa-comment comment-icon"></i>
+            <div>
+              <span><strong>Likes : </strong></span>
+              <span class="likes-count">0</span>
+            </div>
+          </div>
+
+          <i class="far fa-bookmark"></i>
+
+        </div>
+
+        <span class="username-description"></span>
+        <span class="description"></span>
+        <p class="tags"></p>
+        <div class="comments-container"></div>
+        <div class="comment-input-container search-container">
+          <input type="text" id="comment-input" placeholder="add comment..."/>
+          <button class="send-button">send</button>
+        </div>
+      </article>
+    </template>
+
+<!-- kalup za komentar -->
+    <template id="comment-template">
+      <div class="comment">
+        <span class="comment-user"></span>
+        <span class="comment-comment"></span>
+      </div>
+    </template>
+
+  </head>
+
+  <div id="myModal" class="modal">
+    <div class="modal-container">
+      <p class="modal-title ">LOG IN AS :</p>
+      <div class="modal-content "></div>
+    </div>
+  </div>
+
+  <body>      
+    <header>
+      <div class="header-container">
+        <div class="title-container ">
+          <p class="header-title">Fake</p>
+          <p class="header-title hub-frame"><strong>hub</strong></p>
+        </div>
+        <div class="search-container search-headder">
+          <input type="text" id="search-box" placeholder="search"/>
+          <i class="fa fa-search search-icon search-icon-header"></i>
+        </div>
+        <div id="icons-container ">
+          <i class="far fa-heart show-likes"></i>
+          <i class="far fa-user-circle my-profile"></i>
+          <i class="fas fa-sign-out-alt change-user"></i>
+          <i class="far fa-bookmark show-bookmarks"></i>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="feed-container">
+        <div class="add-new-post frame">
+          <i class="fas fa-plus-circle"></i>
+          <p>ADD NEW POST</p>
+        </div>
+        <div class="feed">
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="stats-container frame sidebar-text">
+          <p>
+            <strong>About me</strong><br><br>
+            following: <span class="users-paragraph"></span>
+            <span class="following-count-sidebar">0</span><br>
+            likes:     <span class="likes-paragraph"></span>
+            <span class="like-count-sidebar">0</span><br>
+            bookmarks: <span class="bookmarks-paragraph"></span>
+            <span class="bookmark-count-sidebar">0</span><br>
+          </p>
+        </div>
+        <div class="suggested-box frame sidebar-text">
+          <p><strong>Suggested</strong></p>
+          <div class="suggested-container"></div>
+        </div>
+        <div class="following-box frame sidebar-text">
+          <p><strong>Following</strong></p>
+          <div class="following-container"></div>
+        </div>
+      </div>
+    </main>
+    <script src="scripts/users.js"></script>
+  </body>
+</html>
