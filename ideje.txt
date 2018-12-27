@@ -1,0 +1,4 @@
+IDEJE:
+
+1. u funkciji displayModalUsers prominit provjeru postoji li vec modal container
+	

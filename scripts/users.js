@@ -356,7 +356,6 @@ users = [
 	}
 ];
 
-
 // pošto stalno čistim feed i ponovno ga stvaram funkcijama emptyFeed() i displayFeed()
 // post se u feed može nadodati samo ako prođe conditionCheck()
 // a i na ovaj način sam ostavio mogučnost za  nadograndnju stranice što mi je bilo u planu
@@ -372,59 +371,23 @@ conditions={
 	bookmarksFrom:null
 };
 
-//prikaz crnoga ekrana na početku
 showModal();
 
-// prikaz korisnika u crnom ekranu na početku, iz ove funkcije preko handleProfileClick()
-// sakriva modal i prikazuje stvarnu stranicu
-displayModalUsers();
-
-
-//ceka klik na dodavanje nove objave
-document.querySelector(".add-new-post").addEventListener("click",handleNewPost);
-
-//ceka klik na srce u headeru, prikaz postova koje je trenutni korisnik do sada lajkao
-document.querySelector(".show-likes").addEventListener("click",handleShowLikesClick);
-
-//ceka klik na profil u headeru, prikaz postova koje je trenutni korisnik objavio
-document.querySelector(".my-profile").addEventListener("click",handleMyProfileClick);
-
-//ceka klik na logout ikonu u headeru, ponovni prikaz modala
-document.querySelector(".change-user").addEventListener("click",handleChangeProfileClick);
-
-//ceka klik na bookmark u headeru, prikaz postova koje je trenutni korisnik oznacio
-document.querySelector(".show-bookmarks").addEventListener("click",handleShowBookmarksClick);
-
-//za ove prethodne cetri funkcije vrijedi da se klikom na istu ikonu korisnika vraca
-//na njegov feed, a klikom na neku drugu ikonu u drugo stanje
-//nije moguce u isto vrijeme prikazati presjek npr lajkanih i bookmarkanih slika
-//iako mislim da je to moguce odraditi preko promjene vise conditions vrijednosti
-
-
-//ceka upisivanje u trazilicu u headeru
-document.querySelector("#search-box").addEventListener("keyup",handleTextInput);
-
-//prikazuje feed na osnovi upisanoga u trazilicu u headeru
-function handleTextInput(e){
-	let inputElement = e.currentTarget;
-	let text = inputElement.value;
-	conditions.keyword = text;
-	feedContainer = document.querySelector(".feed");
-	emptyContainer(feedContainer);
-	displayFeed();
-} 
+addHandlers();
 
 //prikazuje crni zaslon pri logiranju
 function showModal() {
 
  	modal.style.display = "block";
  	document.querySelector("header").classList.add("hide");
+ 	displayModalUsers();
 }
 
 //prikazuje korisnike u modalu i vodi na feed odabranog korisnika
 function displayModalUsers(){
 
 	modalContainer = document.querySelector(".modal-content");
+	
 	if(modalContainer.firstChild){
 		return;
 	}
@@ -831,70 +794,6 @@ function resetConditions() {
     });
 }
 
-//klik na ikonu izlaz u headeru (logout neke vrste)
-function handleChangeProfileClick(e){
-	showModal();
-	displayModalUsers();
-}
-
-//klik na ikonu profila u headeru, za prikaz objava trenutnog korisnika
-function handleMyProfileClick(e){
-
-	unclickIcon(document.querySelector(".show-likes"));	
-	unclickIcon(document.querySelector(".show-bookmarks"));
-
-	clickedElement = e.currentTarget;
-	if(clickedElement.classList.contains("far")){
-		clickedElement.classList.remove("far");
-		clickedElement.classList.add("fas");
-		conditions.username = currentUser.username;
-	}else{
-		clickedElement.classList.remove("fas");
-		clickedElement.classList.add("far");
-	}
-	displayFeed();
-	resetConditions();
-}
-
-//klik na srce u headeru, za prikaz slika koje je trenutni korisnik lajkao
-function handleShowLikesClick(e){
-	clickedElement = e.currentTarget;
-
-	unclickIcon(document.querySelector(".my-profile"));	
-	unclickIcon(document.querySelector(".show-bookmarks"));
-
-	if(clickedElement.classList.contains("far")){
-		clickedElement.classList.remove("far");
-		clickedElement.classList.add("fas");
-		conditions.likesFrom = currentUser.username;
-	}else{
-		clickedElement.classList.remove("fas");
-		clickedElement.classList.add("far");
-	}
-	displayFeed();
-	resetConditions();
-}
-
-//klik na bookmark u headeru, za prikaz slika koje je trenutni korisnik oznacio
-function handleShowBookmarksClick(e){
-	clickedElement = e.currentTarget;
-
-	unclickIcon(document.querySelector(".my-profile"));	
-	unclickIcon(document.querySelector(".show-likes"));
-
-
-	if(clickedElement.classList.contains("far")){
-		clickedElement.classList.remove("far");
-		clickedElement.classList.add("fas");
-		conditions.bookmarksFrom = currentUser.username;
-	}else{
-		clickedElement.classList.remove("fas");
-		clickedElement.classList.add("far");
-	}
-	displayFeed();
-	resetConditions();
-}
-
 //objava komentara na slici
 function handleSendCommentClick(e){
 	newCommentString = e.currentTarget.parentElement.querySelector("#comment-input").value;
@@ -918,7 +817,6 @@ function handleCommentIconClick(e){
 	e.currentTarget.parentElement.parentElement.parentElement.querySelector("#comment-input").focus();
 }
 
-
 //pronalazi post po IDu, vraća objekt iz liste users.posts
 //ovo sam koristio u paru sa dodavanjem IDa na html article za svaku sliku
 //da sam se toga sjetio ranije neke stvari san mozda moga elegantnije rješit
@@ -937,43 +835,6 @@ function findPostByID(targetID){
 function setPostID(){
 	postIDcounter++;
 	return postIDcounter;
-}
-
-//klik na dodavanje nove slike
-function handleNewPost(){
-	if (confirm('Do you want to add a new post?')) {
-    	let newPath = prompt("Image path:", "images/posts/miakhalifa1.png");
-    	let newLocation = prompt("location:", "asd");
-    	let newDescription = prompt("description:", "asd");
-    	let newTags = prompt("tags:", "asd");
-    	newTags = newTags.split(" ");
-    	for(let tag in newTags){
-    		if(tag[0] != '#'){
-    			tag = "#"+tag;
-    		}
-    	}
-    	let newPost = {
-				postID:setPostID(),
-				imagePath:newPath,
-				location:newLocation,
-				likers:[
-				],
-				description: newDescription,
-				tags:newTags,
-				comments: [
-				]
-			}
-		currentUser.posts.push(newPost);
-	}
-	displayFeed();
-}
-
-//pretvara ikonicu iz pune u praznu, i ovoga san se moga siti ranije pa koristit na vise mista
-function unclickIcon(element){
-	if(element.classList.contains("fas")){
-		element.classList.remove("fas");
-		element.classList.add("far");
-	}
 }
 
 //klik na botun follow, bilo u sidebaru ili feedu,
@@ -1012,5 +873,212 @@ function removeFromSuggestions(user){
 			profile.remove();
 		}
 	}
-
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+//		EVENT HANDLING FUNCTIONS
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+//dodaje handler funkcije na sve staticne ikone (header ikone, search bar, new post)
+function addHandlers(){
+
+	//ceka klik na dodavanje nove objave
+	document.querySelector(".add-new-post").addEventListener("click",handleNewPost);
+	
+	//ceka klik na srce u headeru, prikaz postova koje je trenutni korisnik do sada lajkao
+	document.querySelector(".my-likes").addEventListener("click",handleMyLikesClick);
+	
+	//ceka klik na profil u headeru, prikaz postova koje je trenutni korisnik objavio
+	document.querySelector(".my-profile").addEventListener("click",handleMyProfileClick);
+	
+	
+	//ceka klik na bookmark u headeru, prikaz postova koje je trenutni korisnik oznacio
+	document.querySelector(".my-bookmarks").addEventListener("click",handleMyBookmarksClick);
+	
+	//za ove prethodne cetri funkcije vrijedi da se klikom na istu ikonu korisnika vraca
+	//na njegov feed, a klikom na neku drugu ikonu u drugo stanje
+	//nije moguce u isto vrijeme prikazati presjek npr lajkanih i bookmarkanih slika
+	//iako mislim da je to moguce odraditi preko promjene vise conditions vrijednosti
+	
+	//ceka upisivanje u trazilicu u headeru
+	document.querySelector("#search-box").addEventListener("keyup",handleTextInput);
+
+	//ceka klik na logout ikonu u headeru, ponovni prikaz modala
+	document.querySelector(".change-user").addEventListener("click",handleLogOutClick);
+}
+
+//Aktivira se pritiskom na gumb za dodavanje novog posta
+//Korisniku se prikazuje dijalog u kojem se unose podaci o novoj objavi
+//Napravi se novi objekt newPost u koji se upišu uneseni podaci
+//Zatim se taj objekt dodaje na listu objava trenutnoga korisnika
+//Te se stvara korisnikov feed
+function handleNewPost(){
+	if (confirm('Do you want to add a new post?')) {
+    	let newPath = prompt("Image path:", "images/posts/miakhalifa1.png");
+    	let newLocation = prompt("location:", "asd");
+    	let newDescription = prompt("description:", "asd");
+    	let newTags = prompt("tags:", "asd");
+    	newTags = newTags.split(" ");
+    	for(let tag in newTags){
+    		if(tag[0] != '#'){
+    			tag = "#"+tag;
+    		}
+    	}
+
+    	let newPost = {
+				postID:setPostID(),
+				imagePath:newPath,
+				location:newLocation,
+				likers:[
+				],
+				description: newDescription,
+				tags:newTags,
+				comments: [
+				]
+			}
+		currentUser.posts.push(newPost);
+	}
+	displayFeed();
+}
+
+//Aktivira se klikom na ikonu srca (lajk) u zaglavlju
+//Prikazuje samo one objave koje je trenutni korisnik lajkao
+function handleMyLikesClick(e){
+	clickedElement = e.currentTarget;
+
+	if(!isIconActive(clickedElement)){
+		conditions.likesFrom = currentUser.username;
+	}
+
+	headerIconClicked("my-likes");
+	displayFeed();
+	resetConditions();
+}
+
+//Aktivira se klikom na ikonu profila u zaglavlju
+//Prikazuje samo one objave koje je trenutni korisnik objavio
+function handleMyProfileClick(e){
+	clickedElement = e.currentTarget;
+	headerIconClicked("my-profile");
+
+	if(!isIconActive(clickedElement)){
+		conditions.username = currentUser.username;
+	}
+	
+	displayFeed();
+	resetConditions();
+}
+
+//Aktivira se klikom na ikonu oznake(bookmark) u zaglavlju
+//Prikazuje samo one objave koje je trenutni korisnik oznacio
+function handleMyBookmarksClick(e){
+	clickedElement = e.currentTarget;
+	headerIconClicked("my-bookmarks");
+
+	if(!isIconActive(clickedElement)){
+		conditions.bookmarksFrom = currentUser.username;
+	}
+
+	displayFeed();
+	resetConditions();
+}
+
+//Aktivira se klikom na ikonu za izlaz u zaglavlju
+//Ponovno prikazuje modal s odabirom korisnika, kao na pocetku
+function handleLogOutClick(e){
+	showModal();
+	displayModalUsers();
+}
+
+//Prikazuje feed trenutnog korisnika na osnovi upisanoga u trazilicu u headeru
+//Upisani tekst uspoređuje sa opisom svakog posta pri stvaranju feeda
+//Te ako opis sadrži upisani tekst, slika se objavljuje na feed
+function handleTextInput(e){
+	let inputElement = e.currentTarget;
+	let text = inputElement.value;
+
+	conditions.keyword = text;
+	feedContainer = document.querySelector(".feed");
+	emptyContainer(feedContainer);
+	displayFeed();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+//		ICON DISPLAY FUNCTIONS
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+//Kao argument prima ime klase kliknute ikone u headeru,
+//Ako je ikona otprije kliknuta, otkliknut će je
+//A ako ikona nije već kliknuta, kliknut će je, te otkliknuti druge ikone
+function headerIconClicked(clickedIcon){
+	classNames = ["my-likes","my-profile","my-bookmarks"];
+
+	if(!classNames.includes(clickedIcon)){
+		console.log("headerIconClicked : argument invalid ("+clickedIcon+")");
+		return;
+	}
+
+	icons = [];
+	iconCount = 3;
+	for( let i = 0; i<iconCount; i++ ){
+		icons[i] = document.querySelector("." + classNames[i]);
+
+		if(classNames[i] == clickedIcon){
+			changeIcon(icons[i]);
+		}else{
+			deactivateIcon(icons[i]);
+		}
+	}
+}
+
+//provjera jeli ikona kliknuta ili ne
+//		1 - kliknuta
+//		0 - nije kliknuta
+function isIconActive(icon){
+	if(icon.classList.contains("fas")){
+		return true;
+	}else if(icon.classList.contains("far")){
+		return false;
+	}
+}
+
+//ako je ikonica popunjena, isprazni je, ako je prazna, popuni je
+function changeIcon(icon){
+	if(isIconActive(icon)){
+		icon.classList.remove("fas");
+		icon.classList.add("far");
+	}else{
+		icon.classList.remove("far");
+		icon.classList.add("fas");
+	}
+}
+
+//ako je ikonica popunjena, isprazni je
+function deactivateIcon(icon){
+	if(isIconActive(icon)){
+		icon.classList.remove("fas");
+		icon.classList.add("far");
+	}
+}
+
+//ako je ikonica prazna, popuni je
+function activateIcon(icon){
+	if(!isIconActive(icon)){
+		icon.classList.remove("far");
+		icon.classList.add("fas");
+	}
+}
+
+
