@@ -6,7 +6,7 @@ currentUser = null;
 //random users je set korisnika koji se nasumimćno predlažu za praćenje trenutnom korisniku
 //u tom setu se nikad neće pronaći korisnici koje trenutni korisnik već prati
 
-randomUsers = new Set();
+randomSuggestions = new Set();
 
 postIDcounter = 0;
 
@@ -260,7 +260,7 @@ users = [
 				comments: [
 					{
 						user:"AlexGrey",
-						comment:"@Oooops"
+						comment:"@JordiElNino Oooops"
 					}
 				]
 			}
@@ -315,7 +315,7 @@ users = [
 				comments: [
 					{
 						user:"JohnnySins",
-						comment:"nice dress "
+						comment:"nice dress"
 					}
 				]
 			}
@@ -330,7 +330,7 @@ users = [
 		bookmarks:[
 		],
 		following:[
-			"MiakHalifa"
+			"MiaKhalifa"
 		],
 		posts: [
 			{
@@ -375,7 +375,7 @@ showModal();
 
 addHandlers();
 
-//prikazuje crni zaslon pri logiranju
+//Preko ekrana postavlja crnu sliku, podloga za odabir korisnika
 function showModal() {
 
  	modal.style.display = "block";
@@ -383,9 +383,9 @@ function showModal() {
  	displayModalUsers();
 }
 
-//prikazuje korisnike u modalu i vodi na feed odabranog korisnika
+//Prikazuje sve korisnike s kojima se možete ulogirati
+//Klikom na korisnika, stranica vas vodi na njegov profil
 function displayModalUsers(){
-
 	modalContainer = document.querySelector(".modal-content");
 	
 	if(modalContainer.firstChild){
@@ -393,16 +393,53 @@ function displayModalUsers(){
 	}
 	for(const user of users){
 		newProfileBox = createProfileBox(user);
-		newProfileBox.querySelector(".profile-picture").addEventListener("click", handleProfileClick);
-		newProfileBox.querySelector(".fullName-paragraph").addEventListener("click", handleProfileClick);
-		newProfileBox.querySelector(".username-paragraph").remove();
-		newProfileBox.querySelector(".follow-button").remove();
+		customiseProfileBox(newProfileBox,"modal");
 		modalContainer.append(newProfileBox);
 	}
 }
 
-//prima objekt user iz liste objekata users
-//vraca univerzalnu kutiju sa slikom, nadimkom i punim imenom korisnika,
+function customiseProfileBox(profileBox, context){
+	switch(context){
+		case "modal":
+			profileBox.querySelector(".profile-picture").addEventListener("click", handleLogInClick);
+			profileBox.querySelector(".fullName-paragraph").addEventListener("click", handleLogInClick);
+			profileBox.querySelector(".username-paragraph").remove();
+			profileBox.querySelector(".follow-button").remove();
+			break;
+		case "currentUserSidebar":
+			profileBox.querySelector(".profile-picture").style.maxWidth = "4em";
+			profileBox.querySelector(".profile-picture").style.borderWidth = "0.2em";
+			profileBox.querySelector(".follow-button").remove();
+			break;
+		case "suggestionSidebar":		
+			profileBox.querySelector(".fullName-paragraph").remove();
+			profileBox.querySelector(".profile-picture").style.maxWidth = "3em";
+			profileBox.querySelector(".profile-picture").style.borderWidth = "0.2em"
+			profileBox.querySelector("img").classList.add("sidebar-image");
+			profileBox.querySelector("img").style.margin = "0px";
+			profileBox.childNodes[1].style.flexDirection = "row";
+			profileBox.childNodes[1].style.padding = "0px";
+			profileBox.querySelector(".follow-button").addEventListener("click",handleFollowClick);
+			break;
+		case "followingSidebar":		
+			profileBox.querySelector(".fullName-paragraph").remove();
+			profileBox.querySelector(".follow-button").innerHTML = "Unfollow";
+			profileBox.querySelector(".profile-picture").style.maxWidth = "3em";
+			profileBox.querySelector(".profile-picture").style.borderWidth = "0.2em"
+			profileBox.querySelector("img").classList.add("sidebar-image");
+			profileBox.querySelector("img").style.margin = "0px";
+			profileBox.childNodes[1].style.flexDirection = "row";
+			profileBox.childNodes[1].style.padding = "0px";			break;
+		default:
+			console.log("customiseProfileBox : invalid argument : ("+context+")");
+			break;
+	}
+}
+
+
+//Funkcija prima objekt user, u kojemu se nalaze svi podaci o korisniku
+//U html profile-box-template ubacuje podatke o korisniku user
+//vraca univerzalni element - profile box
 function createProfileBox(user){
 
 	let profileBoxTemplate = document.querySelector("#profile-box-template");
@@ -415,21 +452,27 @@ function createProfileBox(user){
 	return newProfileBox;
 }
 
-//pritisak na ikonu profila u headeru
-function handleProfileClick(e){
+//Odabirom nekog od ponuđenih profila iz modala se logirate na njegov profil
+//funkcija dohvaca objekt user koji se odnosi na odabranog korisnika
+//te na stranici osvježava sve podatke vezane za trenutnog korisnika
+//(statistika, feed, prikaz profila)
+function handleLogInClick(e){
 	let profile = e.currentTarget.parentElement;
 	fullname = profile.querySelector(".fullName-paragraph").textContent;
 	currentUser = findUser(fullname);
-	displayCurrentUser(currentUser);
 	modal.style.display = "none";
-	randomUsers.clear();
+
+	updateCurrentUser();
+	
+	randomSuggestions.clear();
  	document.querySelector("header").classList.remove("hide");
-	displaySuggestionsSidebar();
-	displayFeed(conditions);
-	displayFollowing();
+	updateSuggestionsSidebar();
+	updateFollowingList();
+	displayFeed();
 }
 
-//na temelju prosljedenoga stringa usernamea, vraca user objekt sa svim podacima o korisniku
+//argument : username ili full name nekoga korisnika
+//funkcija pronalazi objekt vezan za trazenoga korisnika te vraca taj objekt
 function findUser(username){
 	for(const user of users){
 		if(username == user.username){
@@ -444,28 +487,38 @@ function findUser(username){
 	}
 }
 
-//prikazuje podatke vezane za trenutnoga korisnika
-function displayCurrentUser(user){
+//Osvjezavanje profilne slike i statistike trenutnog korisnika
+function updateCurrentUser(){
+	
+	let profileBox = createProfileBox(currentUser);
+	customiseProfileBox(profileBox, "currentUserSidebar");
+	
+	updateCurrentUserBox(profileBox);
+	updateStats();
+}
+
+//provjera postoji li vec element profila u sidebaru
+//ako postoji, mijenja ga trenutnim korisnikom
+//ako ne postoji, samo nadodaje trenutnog korisnika
+function updateCurrentUserBox(profileBox){
 	let sidebarElement = document.querySelector(".sidebar");
 	if(sidebarElement.firstElementChild.classList[0] == "profile-container"){
 		sidebarElement.removeChild(sidebarElement.childNodes[1]);
-		currentUser = user;
-		user = currentUser;
 	}
-
-	let profileBox = createProfileBox(user);
-
-	profileBox.querySelector(".profile-picture").style.maxWidth = "4em";
-	profileBox.querySelector(".profile-picture").style.borderWidth = "0.2em";
-	profileBox.querySelector(".follow-button").remove();
 	sidebarElement.prepend(profileBox);
-	updateFollowersSidebar();
-	updateLikesSidebar();
-	updateBookmarksSidebar();
 }
 
-//prikazuje feed
-//određuje kada će se pojaviti suggestion container u feedu
+//osvježava statistiku u sidebaru (following, like, bookmark)
+function updateStats(){
+	document.querySelector(".following-count-sidebar").innerHTML = currentUser.following.length;
+	document.querySelector(".like-count-sidebar").innerHTML = currentUser.likes.length;
+	document.querySelector(".bookmark-count-sidebar").innerHTML = currentUser.bookmarks.length;
+}
+
+//prikazuje objave u feedu
+//u feedu se prikazuju samo objave korisnika koje trenutni korisnik prati
+//određuje hoce li (i kada ce) se u feedu prikazati suggestions box
+//ako korisnik prati sve moguce korisnike, za njega se ne stvara suggestions box
 function displayFeed(){
 
 	feedContainer =document.querySelector(".feed");
@@ -474,23 +527,21 @@ function displayFeed(){
 	let suggestionsAfterPost = 1;
 	let postCounter = 0;
 
-	
-
-	for(const followingUser of currentUser.following){
-		user = findUser(followingUser);
+	//objave ljudi koje trenutni korisnik prati
+	for(const following of currentUser.following){
+		user = findUser(following);
 		for(const post of user.posts){
-
 			if(checkConditions(post,user.username)){
 			postCounter=postCounter+1;
 			displayPost(post, user);
 			}
-			
 			if(postCounter == suggestionsAfterPost){
-				displaySuggestionsFeed();
+				updateSuggestionsFeed();
 			}
 		}
 	}
 
+	//objave trenutnog korisnika
 	for(const post of currentUser.posts)
 	{
 		if(checkConditions(post,currentUser)){
@@ -499,14 +550,13 @@ function displayFeed(){
 		}
 		
 		if(postCounter == suggestionsAfterPost){
-			displaySuggestionsFeed();
+			updateSuggestionsFeed();
 		}
 	}
 }
 
 //provjerava uvjete koje post mora zadovoljiti da bi bio objavljen u određenome feedu
 //koristi globalnu varijablu conditions
-
 function checkConditions(post,username){
 	if(conditions.username != null){
 		if(conditions.username != username){
@@ -628,55 +678,55 @@ function showComment(user, comment, commentsContainer){
 
 //racuna koje korisnike trenutni korisnik ne prati, i svaki put nasumičnim poretkom prikazuje
 //kao prijedloge, određuje također i koliko će se prijedloga prikazati
-//prijedloge vuće iz randomUsers globalne varijable
-function displaySuggestionsSidebar(){
+//prijedloge vuće iz randomSuggestions globalne varijable
+function updateSuggestionsSidebar(){
 	let container = document.querySelector(".suggested-container");
 	emptyContainer(container);
-	let numberOfSuggestions = 10;
-	let possibleSuggestions = users.length - currentUser.following.length - 1;
-	console.log(possibleSuggestions);
+	container.classList.add("suggested-sidebar");
 
+	updateRandomSuggestionsList(10);
+
+	for (const user of randomSuggestions) {
+		newProfileBox = createProfileBox(user);
+		customiseProfileBox(newProfileBox, "suggestionSidebar");
+		container.appendChild(newProfileBox);
+	}
+}
+
+//osvježava postojeću ili stvara novu listu nasumicnih korisnika za prijedloge
+//za argument prima velicinu liste
+//nasumicni prijedlozi nastaju iz one skupine ljudi koja ima racun
+//a trenutni korisnik ih ne prati
+//u listi nikada nece biti dva ista imena, te ako je zeljeni broj nasumicnih korisnika
+//veci od mogucega broja (moguci = ukupni - oni koje korisnik prati) nece bit problema
+function updateRandomSuggestionsList(numberOfSuggestions){
+
+	let possibleSuggestions = users.length - currentUser.following.length - 1;
 	if(possibleSuggestions < numberOfSuggestions){
 		numberOfSuggestions = possibleSuggestions;
 	}
 
-	while(randomUsers.size < numberOfSuggestions){
+	while(randomSuggestions.size < numberOfSuggestions){
 		let randomUser = users[Math.floor(Math.random() * users.length)];
 
 		if(currentUser.following.includes(randomUser.username)){
 			continue;
 		}
 		if(randomUser.username != currentUser.username){
-				randomUsers.add(randomUser);
+				randomSuggestions.add(randomUser);
 		}
 	}
-
-	for (const user of randomUsers) {
-		newProfileBox = createProfileBox(user);
-		newProfileBox.querySelector(".fullName-paragraph").remove();
-		newProfileBox.querySelector(".profile-picture").style.maxWidth = "3em";
-		newProfileBox.querySelector(".profile-picture").style.borderWidth = "0.2em"
-		newProfileBox.querySelector("img").classList.add("sidebar-image");
-		newProfileBox.querySelector("img").style.margin = "0px";
-		newProfileBox.childNodes[1].style.flexDirection = "row";
-		newProfileBox.childNodes[1].style.padding = "0px";
-		newProfileBox.querySelector(".follow-button").addEventListener("click",handleFollowClick);
-
-		container.appendChild(newProfileBox);
-	}
-	container.classList.add("suggested-sidebar","flex-space-between","flex-center");
 }
 
 //prikazuje prijedloge u feedu, između objava
-function displaySuggestionsFeed(){
+function updateSuggestionsFeed(){
 
-	if(document.querySelector(".suggestion-container-feed"))
-	{
+	if(document.querySelector(".suggestion-container-feed")){
 		return;
 	}
 
 	let  count = 0;
-	for(const user of randomUsers){
+	for(const user of randomSuggestions){
 		count++;
 	}
 	if(count<1){
@@ -686,7 +736,7 @@ function displaySuggestionsFeed(){
 	let container = document.createElement('div');
 	container.classList.add("suggestion-container-feed","frame");
 
-	for(const user of randomUsers){
+	for(const user of randomSuggestions){
 		newProfileBox = createProfileBox(user)
 		newProfileBox.querySelector(".fullName-paragraph").remove();
 		newProfileBox.querySelector(".follow-button").addEventListener("click",handleFollowClick);
@@ -697,22 +747,14 @@ function displaySuggestionsFeed(){
 }
 
 //prikazuje listu ljudi koje trennutni korisnik prati
-function displayFollowing(){
+function updateFollowingList(){
 	let container = document.querySelector(".following-container");
 	emptyContainer(container);
+
 	for (const following of currentUser.following) {
 		let user = findUser(following);
-
-		newProfileBox = createProfileBox(user);
-		newProfileBox.querySelector(".fullName-paragraph").remove();
-		newProfileBox.querySelector(".follow-button").remove();
-		newProfileBox.querySelector(".profile-picture").style.maxWidth = "3em";
-		newProfileBox.querySelector(".profile-picture").style.borderWidth = "0.2em"
-		newProfileBox.querySelector("img").classList.add("sidebar-image");
-		newProfileBox.querySelector("img").style.margin = "0px";
-		newProfileBox.childNodes[1].style.flexDirection = "row";
-		newProfileBox.childNodes[1].style.padding = "0px";
-
+		let newProfileBox = createProfileBox(user);
+		customiseProfileBox(newProfileBox, "followingSidebar");
 		container.appendChild(newProfileBox);
 	}
 }
@@ -744,13 +786,9 @@ function addClickHandlerHeart(heartElement, likeCounter, post) {
 //osvježava broj lajkova na slici
 function updateLikes(post,likeCounter){
 	likeCounter.innerHTML =  post.likers.length;
-	updateLikesSidebar();
+	updateStats();
 }
 
-//osvjžava broj lajkova trenutnog korisnika
-function updateLikesSidebar(){
-	document.querySelector(".like-count-sidebar").innerHTML = currentUser.likes.length;
-}
 
 //klik na bookmark u headeru
 function addClickHandlerBookmark(bookmarkElement, post) {
@@ -762,30 +800,18 @@ function addClickHandlerBookmark(bookmarkElement, post) {
     		bookmarkElement.style.color = "var(--primary-color)";
 
     		currentUser.bookmarks.push(post.postID);
-    		updateBookmarksSidebar();
+    		updateStats();
     	}else{
     		bookmarkElement.classList.remove("fas");
     		bookmarkElement.classList.add("far");
     		bookmarkElement.style.color = "var(--light-primary-color)";
     		currentUser.bookmarks.pop(post.postID);
-    		updateBookmarksSidebar();
+    		updateStats();
     	}
 
     }, false);
 }
 
-//osvježavanje broja bookmarka korisnika
-function updateBookmarksSidebar(){
-
-	document.querySelector(".bookmark-count-sidebar").innerHTML = currentUser.bookmarks.length;
-}
-
-//osvježavanje broja followera korisnika
-function updateFollowersSidebar(){
-
-	document.querySelector(".following-count-sidebar").innerHTML = currentUser.following.length;
-	displayFollowing();
-}
 
 //vraća globalnu varijablu conditions na početne uvjete
 function resetConditions() {
@@ -842,14 +868,15 @@ function setPostID(){
 function handleFollowClick(e){
 	username = e.currentTarget.parentElement.querySelector(".username-paragraph").textContent;
 	user = findUser(username);
-	randomUsers.delete(user);
+	randomSuggestions.delete(user);
 	currentUser.following.push(user.username);
-	updateFollowersSidebar();
+	updateStats();
 
 	removeFromSuggestions(user);
-	displaySuggestionsFeed();
+	updateSuggestionsFeed();
 
-	displaySuggestionsSidebar();
+	updateSuggestionsSidebar();
+	updateFollowingList();
 	displayFeed();
 }
 

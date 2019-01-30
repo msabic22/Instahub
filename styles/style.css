@@ -165,7 +165,7 @@ main {
   display: inline-block;
 }
 
-.suggested-container,
+.suggestion-container,
 .following-container{
     display: flex;
     flex-direction: column;

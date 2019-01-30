@@ -1,4 +1,12 @@
 IDEJE:
 
 1. u funkciji displayModalUsers prominit provjeru postoji li vec modal container
+
+2. unfollow
+
+3. klik na logo 
+
+4. smislit bolje uvjete
+
+
 	
